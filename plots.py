@@ -6,14 +6,14 @@ import model
 import jax.numpy as jnp
 
 def vect_params(p):
-    il1 = jnp.tril_indices(2) # indices for lower triangular of a 2x2 matrix
+    il1 = jnp.tril_indices(3) # indices for lower triangular of a 2x2 matrix
     return jnp.concatenate((jnp.array([p.asymptotic,p.inflexion,p.tau]), p.cov_latent[il1], jnp.array([p.var_residual])))
     
 theta0 = model.parametrization.params_to_reals1d(
     asymptotic=200,
     inflexion=500,
     tau=150,
-    cov_latent=jnp.diag(jnp.array([40, 100])),
+    cov_latent=jnp.diag(jnp.array([40, 100, 100])),
     var_residual=100,
 )
 p0 = model.parametrization.reals1d_to_params(theta0)

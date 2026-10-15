@@ -72,6 +72,8 @@ def one_iter(
     grad_mean,
     step_mean,
     prng_key,
+    m,
+    v,
 ):
     n, J = y.shape
     assert t.shape == (J,)
@@ -97,22 +99,40 @@ def one_iter(
         prng_key=prng_key,
     )
 
-    current_jac = -model.jac_log_likelihood_rows(theta, z, y, t)
-    jac += factor * (current_jac - jac)
-    fisher_info_mat = jac.T @ jac / n
-    fisher_info_mat = jax.lax.cond(
-        it < smart_start,
-        lambda fisher_info_mat: factor * fisher_info_mat
-        + (1 - factor) * jnp.eye(model.parametrization.size),
-        lambda fisher_info_mat: fisher_info_mat,
-        fisher_info_mat,
-    )
-    grad = jac.mean(axis=0)
-    theta_step = jnp.linalg.solve(fisher_info_mat, grad)
+    # current_jac = -model.jac_log_likelihood_rows(theta, z, y, t)
+    # jac += factor * (current_jac - jac)
+    # fisher_info_mat = jac.T @ jac / n
+    # fisher_info_mat = jax.lax.cond(
+    #     it < smart_start,
+    #     lambda fisher_info_mat: factor * fisher_info_mat
+    #     + (1 - factor) * jnp.eye(model.parametrization.size),
+    #     lambda fisher_info_mat: fisher_info_mat,
+    #     fisher_info_mat,
+    # )
+    # grad = jac.mean(axis=0)
+    # theta_step = jnp.linalg.solve(fisher_info_mat, grad)
+    # theta -= factor * theta_step
+
+    # step_mean = factor * (theta_step - step_mean)
+    # grad_mean = factor * (grad - grad_mean)
+    current_grad = -model.grad_log_likelihood(theta, z, y, t)
+    
+    # Smooth the gradient using the existing factor logic
+    grad = grad_mean + factor * (current_grad - grad_mean)
+    
+    # Adam Preconditioner Update
+    beta1, beta2, eps = 0.9, 0.999, 1e-8
+    m = beta1 * m + (1 - beta1) * grad
+    v = beta2 * v + (1 - beta2) * (grad ** 2)
+    
+    m_hat = m / (1 - beta1 ** (it + 1))
+    v_hat = v / (1 - beta2 ** (it + 1))
+    
+    # Calculate step using Adam's preconditioned gradient
+    theta_step = m_hat / (jnp.sqrt(v_hat) + eps)
     theta -= factor * theta_step
 
     step_mean = factor * (theta_step - step_mean)
-    grad_mean = factor * (grad - grad_mean)
 
     return (
         theta,
@@ -121,12 +141,14 @@ def one_iter(
         t,
         jac,
         current_ar,
-        grad_mean,
+        grad,
         step_mean,
         prng_key,
         factor,
         theta_step,
-        fisher_info_mat,
+        #fisher_info_mat,
+        m,
+        v
     )
 
 
@@ -176,20 +198,25 @@ def gsto(
     step_mean = jnp.zeros(model.parametrization.size)
     grad_mean = jnp.zeros(model.parametrization.size)
 
+    m = jnp.zeros(model.parametrization.size)
+    v = jnp.zeros(model.parametrization.size)
+
     for it in itertools.count():
         (
             theta,
             sigma_proposal,
             z,
             t,
-            jac,
+            #jac,
             current_ar,
             grad_mean,
             step_mean,
             prng_key,
             factor,
             theta_step,
-            fisher_info_mat,
+            #fisher_info_mat,
+            m,
+            v,
         ) = one_iter(
             it=it,
             smart_start=smart_start,
@@ -199,11 +226,13 @@ def gsto(
             z=z,
             y=y,
             t=t,
-            jac=jac,
+            #jac=jac,
             current_ar=current_ar,
             grad_mean=grad_mean,
             step_mean=step_mean,
             prng_key=prng_key,
+            m=m, 
+            v=v,
         )
 
         if end_heating is None:
@@ -221,7 +250,7 @@ def gsto(
             z,
             theta,
             factor,
-            fisher_info_mat,
+            #fisher_info_mat,
             step_mean,
             grad_mean,
         )
@@ -246,8 +275,8 @@ def estim(y, t, stop_crit=1e-6, N_smooth=10000, prng_key=0, smart_start=1000, th
         jnp.array([x.theta for x in usefull_values]).mean(axis=0),
         jnp.array([x.theta for x in usefull_values]),
         jnp.array([x.factor for x in usefull_values]),        
-        jnp.array([x.fisher_info_mat for x in usefull_values]).mean(axis=0),
-        jnp.array([x.fisher_info_mat for x in usefull_values]),
+    #     jnp.array([x.fisher_info_mat for x in usefull_values]).mean(axis=0),
+    #     jnp.array([x.fisher_info_mat for x in usefull_values]),
     )
 
 
@@ -261,10 +290,10 @@ Retdata = collections.namedtuple(
         "z",
         "theta",
         "factor",
-        "fisher_info_mat",
+        #"fisher_info_mat",
         "step_mean",
         "grad_mean",
     ),
 )
 
-ResEstim = collections.namedtuple("ResEstim", ("theta", "evol_theta", "factor", "fisher_info_mat", "evol_fim"))
+ResEstim = collections.namedtuple("ResEstim", ("theta", "evol_theta", "factor")) #"fisher_info_mat", "evol_fim"

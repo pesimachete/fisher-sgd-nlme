@@ -42,10 +42,12 @@ def log_likelihood_rows(theta, z, y, t):
 
 jac_log_likelihood_rows = jax.jit(jax.jacfwd(log_likelihood_rows))
 
+
 @jax.jit
 def log_likelihood(theta, z, y, t):
     return log_likelihood_rows(theta, z, y, t).sum()
 
+grad_log_likelihood = jax.jit(jax.grad(log_likelihood))
 
 @jax.jit
 def mh_step(theta, z, y, t, sigma_proposal, prng_key):
