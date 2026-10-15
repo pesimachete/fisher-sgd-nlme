@@ -30,7 +30,7 @@ covariates = namedtuple("covariates","t")
 cov = covariates(jnp.linspace(100,1500,20))
 
 Nsimus = 1000
-n = 1000
+n = 10
 keyy = 0
 many_res = list(
     tqdm(

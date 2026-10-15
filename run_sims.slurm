@@ -1,16 +1,15 @@
 #!/bin/bash
 
 #SBATCH --job-name=fisher_sim
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=16G
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=32G
 #SBATCH --output=slurm_fisher_sim_%j.out
 #SBATCH --error=slurm_fisher_sim_%j.err
 
 set -euo pipefail
 
-# Environnement logiciel
-module purge
-module load miniforge3/25.3.0-3/none-none
+# Environnement logici
+source ~/miniforge3/etc/profile.d/conda.sh
 
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate jaxds

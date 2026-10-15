@@ -3,3 +3,17 @@
 *.tar.gz
 venv/
 __pycache__/
+*.sh
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Slurm output files and directories
+slurm-*.out
+slurm/
+*.slurm
+
+# Data directory
+data/
