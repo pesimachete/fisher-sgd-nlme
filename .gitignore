@@ -1,3 +1,5 @@
 *.pdf
 *.npy
 *.tar.gz
+venv/
+__pycache__/

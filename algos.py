@@ -38,17 +38,21 @@ class O3filter:
 def mh_step_adaptative(*, sigma_proposal, current_ar, theta, z, y, t, prng_key):
     n, J = y.shape
     assert t.shape == (J,)
-    assert z.shape == (n, 2)
+    assert z.shape == (n, 3)
     prng_key, key = jax.random.split(prng_key)
     naccept, z = model.mh_step_gibbs(theta, z, y, t, sigma_proposal, key)
-    current_ar += 0.02 * (naccept / n - current_ar)
-    for i, _ in enumerate(sigma_proposal):
-        sigma_proposal = jax.lax.cond(
-            current_ar[i] < 0.4,
-            lambda sigma_proposal: sigma_proposal.at[i].multiply(1 / 1.01),
-            lambda sigma_proposal: sigma_proposal.at[i].multiply(1.01),
-            sigma_proposal,
-        )
+    ar = 0.45
+    alpha  = 1 + 10**(-4)
+    beta = (alpha)**(-ar/(1-ar))
+    sigma_proposal = sigma_proposal * (alpha ** naccept) * (beta ** (n - naccept))
+    # current_ar += 0.02 * (naccept / n - current_ar)
+    # for i, _ in enumerate(sigma_proposal):
+    #     sigma_proposal = jax.lax.cond(
+    #         current_ar[i] < 0.4,
+    #         lambda sigma_proposal: sigma_proposal.at[i].multiply(1 / 1.01),
+    #         lambda sigma_proposal: sigma_proposal.at[i].multiply(1.01),
+    #         sigma_proposal,
+    #     )
     return (sigma_proposal, current_ar, z, prng_key)
 
 
@@ -71,7 +75,7 @@ def one_iter(
 ):
     n, J = y.shape
     assert t.shape == (J,)
-    assert z.shape == (n, 2)
+    assert z.shape == (n, 3)
 
     if end_heating is None:
         factor = jax.lax.cond(
@@ -149,10 +153,10 @@ def gsto(
     else:
         theta = theta0
 
-    sigma_proposal = jnp.ones(2)
+    sigma_proposal = jnp.ones(3)
     current_ar = jnp.ones(1) * 0.4
 
-    z = jnp.zeros((n, 2))
+    z = jnp.zeros((n, 3))
     for _ in range(preheating):
         (sigma_proposal, current_ar, z, prng_key) = mh_step_adaptative(
             sigma_proposal=sigma_proposal,

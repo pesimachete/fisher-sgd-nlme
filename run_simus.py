@@ -22,7 +22,7 @@ theta0 = model.parametrization.params_to_reals1d(
     asymptotic=200,
     inflexion=500,
     tau=150,
-    cov_latent=jnp.diag(jnp.array([40, 100])),
+    cov_latent=jnp.diag(jnp.array([40, 100, 100])),
     var_residual=100,
 )
 
