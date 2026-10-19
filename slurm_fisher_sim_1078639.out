@@ -1,0 +1,10 @@
+==============================================
+TEST SLURM
+Job ID              : 1078639
+Machine             : erable
+Dossier             : /home/phsimaoachet/fisher-sgd-nlme
+CPUs demandes       : 10
+Python              : /home/phsimaoachet/miniforge3/envs/jaxds/bin/python
+==============================================
+JAX: 0.11.2
+Devices: [CpuDevice(id=0)]

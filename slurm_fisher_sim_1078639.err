@@ -1,0 +1,22 @@
+  0%|          | 0/1000 [00:00<?, ?it/s]  0%|          | 0/1000 [00:01<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/phsimaoachet/fisher-sgd-nlme/run_simus.py", line 35, in <module>
+    many_res = list(
+               ^^^^^
+  File "/home/phsimaoachet/miniforge3/envs/jaxds/lib/python3.12/site-packages/tqdm/std.py", line 1186, in __iter__
+    for obj in iterable:
+               ^^^^^^^^
+  File "/home/phsimaoachet/fisher-sgd-nlme/run_simus.py", line 38, in <genexpr>
+    sample_and_estim(theta0, n, key)
+  File "/home/phsimaoachet/fisher-sgd-nlme/run_simus.py", line 17, in sample_and_estim
+    res = algos.estim(y, t, stop_crit=1e-6, N_smooth=5000, prng_key=key_estim, smart_start=2000)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/phsimaoachet/fisher-sgd-nlme/algos.py", line 262, in estim
+    usefull_values = list(
+                     ^^^^^
+  File "/home/phsimaoachet/fisher-sgd-nlme/algos.py", line 220, in gsto
+    ) = one_iter(
+        ^^^^^^^^^
+TypeError: one_iter() missing 1 required keyword-only argument: 'jac'
+--------------------
+For simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.
