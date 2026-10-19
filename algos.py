@@ -67,7 +67,7 @@ def one_iter(
     z,
     y,
     t,
-    jac,
+    #jac,
     current_ar,
     grad_mean,
     step_mean,
@@ -139,7 +139,7 @@ def one_iter(
         sigma_proposal,
         z,
         t,
-        jac,
+        #jac,
         current_ar,
         grad,
         step_mean,
@@ -263,8 +263,8 @@ def estim(y, t, stop_crit=1e-6, N_smooth=10000, prng_key=0, smart_start=1000, th
         itertools.islice(
             itertools.dropwhile(
                 lambda x: (
-                    (x.end_heating is None) or 
-                    (x.step_mean @ x.grad_mean * 1000 > 1e-6)
+                    # (x.end_heating is None) or 
+                    (x.step_mean @ x.grad_mean * n > stop_crit)
                 ),
                 gsto(y, t, prng_key=prng_key, smart_start=smart_start, theta0=theta),
             ),
@@ -274,7 +274,9 @@ def estim(y, t, stop_crit=1e-6, N_smooth=10000, prng_key=0, smart_start=1000, th
     return ResEstim(
         jnp.array([x.theta for x in usefull_values]).mean(axis=0),
         jnp.array([x.theta for x in usefull_values]),
-        jnp.array([x.factor for x in usefull_values]),        
+        jnp.array([x.factor for x in usefull_values]),   
+        jnp.array([x.grad_mean for x in usefull_values]),
+        jnp.array([x.z for x in usefull_values]),
     #     jnp.array([x.fisher_info_mat for x in usefull_values]).mean(axis=0),
     #     jnp.array([x.fisher_info_mat for x in usefull_values]),
     )
@@ -296,4 +298,4 @@ Retdata = collections.namedtuple(
     ),
 )
 
-ResEstim = collections.namedtuple("ResEstim", ("theta", "evol_theta", "factor")) #"fisher_info_mat", "evol_fim"
+ResEstim = collections.namedtuple("ResEstim", ("theta", "evol_theta", "factor", "evol_grad", "evol_z")) #"fisher_info_mat", "evol_fim"

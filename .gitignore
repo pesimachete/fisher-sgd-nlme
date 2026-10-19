@@ -17,3 +17,4 @@ slurm/
 
 # Data directory
 data/
+plots/
