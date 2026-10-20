@@ -18,7 +18,7 @@ def sample_and_estim(theta0, n, prng_key):
     jnp.save("true_z.npy", z)
     y_pd = pd.DataFrame(y,columns=["x_" + str(i) for i in range(1,21)])
     y_pd.to_csv('data/y'+str(key_simu)+'.txt')
-    res = algos.estim(y, t, stop_crit=1e-10, N_smooth=100000, prng_key=key_estim, smart_start=2000)
+    res = algos.estim(y, t, stop_crit=1e-10, N_smooth=100000, prng_key=key_estim, smart_start=5000)
     return res
 
 

@@ -18,3 +18,4 @@ slurm/
 # Data directory
 data/
 plots/
+plots_*/

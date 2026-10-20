@@ -13,7 +13,7 @@ def vect_params(p):
         jnp.array([p.var_residual])
     ))
 
-def generate_all_plots(ex_res_path="example_res.npy", true_z_path="true_z.npy", limit=100000, num_individuals=5):
+def generate_all_plots(ex_res_path="example_res.npy", true_z_path="true_z.npy", limit=200000, num_individuals=5):
     # Ensure plots directory exists
     os.makedirs('plots', exist_ok=True)
 
@@ -23,7 +23,7 @@ def generate_all_plots(ex_res_path="example_res.npy", true_z_path="true_z.npy", 
     theta0 = model.parametrization.params_to_reals1d(
         asymptotic=200, inflexion=500, tau=150,
         cov_latent=jnp.diag(jnp.array([40, 100, 100])),
-        var_residual=100,
+        var_residual=1,
     )
     p0 = model.parametrization.reals1d_to_params(theta0)
     p0_vec = vect_params(p0)
