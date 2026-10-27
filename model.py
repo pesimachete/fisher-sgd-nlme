@@ -126,30 +126,30 @@ def simu_data(theta, n, t=20, prng_key=0):
     p = parametrization.reals1d_to_params(theta)
     key1, key2 = jax.random.split(prng_key)
 
-    base_mean = jnp.array([p.asymptotic, p.inflexion, p.tau])
-    L = jnp.linalg.cholesky(p.cov_latent)
-    df = 2
-    oversample_multiplier = 20 
-    num_candidates = n * oversample_multiplier
-    key_norm, key_chi2 = jax.random.split(key1, 2)
-    x = jax.random.normal(key_norm, shape=(num_candidates, 3))
-    chi2 = jax.random.gamma(key_chi2, df / 2.0, shape=(num_candidates, 1)) * 2.0
-    t_standard = x * jnp.sqrt(df / chi2)
-    z_candidates = t_standard @ L.T + base_mean
-    lower_bounds = base_mean
-    keep_mask = jnp.all(z_candidates > lower_bounds, axis=-1)
-    sort_idx = jnp.argsort((~keep_mask).astype(jnp.int32))
-    z = z_candidates[sort_idx][:n]
-
-
-    # key_mean, key_comp, key_norm = jax.random.split(key1, 3)
     # base_mean = jnp.array([p.asymptotic, p.inflexion, p.tau])
     # L = jnp.linalg.cholesky(p.cov_latent)
-    # spread = 100.0 
-    # gmm_means = base_mean + jax.random.normal(key_mean, shape=(3, 3)) * spread
-    # components = jax.random.randint(key_comp, shape=(n,), minval=0, maxval=3)
-    # assigned_means = gmm_means[components] 
-    # z = jax.random.normal(key_norm, shape=(n, 3)) @ L.T + assigned_means
+    # df = 2
+    # oversample_multiplier = 20 
+    # num_candidates = n * oversample_multiplier
+    # key_norm, key_chi2 = jax.random.split(key1, 2)
+    # x = jax.random.normal(key_norm, shape=(num_candidates, 3))
+    # chi2 = jax.random.gamma(key_chi2, df / 2.0, shape=(num_candidates, 1)) * 2.0
+    # t_standard = x * jnp.sqrt(df / chi2)
+    # z_candidates = t_standard @ L.T + base_mean
+    # lower_bounds = base_mean
+    # keep_mask = jnp.all(z_candidates > lower_bounds, axis=-1)
+    # sort_idx = jnp.argsort((~keep_mask).astype(jnp.int32))
+    # z = z_candidates[sort_idx][:n]
+
+
+    key_mean, key_comp, key_norm = jax.random.split(key1, 3)
+    base_mean = jnp.array([p.asymptotic, p.inflexion, p.tau])
+    L = jnp.linalg.cholesky(p.cov_latent)
+    spread = 50.0 
+    gmm_means = base_mean + jax.random.normal(key_mean, shape=(3, 3)) * spread
+    components = jax.random.randint(key_comp, shape=(n,3), minval=0, maxval=3)
+    assigned_means = gmm_means[components, jnp.arange(3)] 
+    z = jax.random.normal(key_norm, shape=(n, 3)) @ L.T + assigned_means
 
     # z = jax.random.normal(key=key1, shape=(n, 3)) @ jnp.linalg.cholesky(p.cov_latent).T + jnp.array((p.asymptotic, p.inflexion, p.tau))  
 

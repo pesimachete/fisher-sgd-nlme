@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 import os
+from scipy.stats import gaussian_kde
 
 def plot_z_population_summary(ex_res_path="example_res.npy", true_z_path="true_z.npy", limit=100000):
     os.makedirs('plots', exist_ok=True)
@@ -42,17 +43,26 @@ def plot_z_population_summary(ex_res_path="example_res.npy", true_z_path="true_z
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(18, 12))
     
     # ==========================================
-    # ROW 1: Population Distributions (Histograms)
+    # ROW 1: Population Distributions (KDE)
     # ==========================================
     for j in range(3):
         ax = axes[0, j]
         
-        # True distribution
-        ax.hist(true_z[:, j], bins=20, alpha=0.5, label='True Z Population', 
-                color='gray', edgecolor='black', density=True)
-        # Estimated (MAP) distribution
-        ax.hist(map_z[:, j], bins=20, alpha=0.6, label='Estimated MAP Population', 
-                color=colors[j], edgecolor='black', density=True)
+        # Determine range for evaluation grid
+        min_val = min(np.min(true_z[:, j]), np.min(map_z[:, j]))
+        max_val = max(np.max(true_z[:, j]), np.max(map_z[:, j]))
+        padding = (max_val - min_val) * 0.2
+        x_grid = np.linspace(min_val - padding, max_val + padding, 1000)
+        
+        # True distribution KDE (lower bandwidth for more detail)
+        kde_true = gaussian_kde(true_z[:, j], bw_method=0.15)
+        ax.plot(x_grid, kde_true(x_grid), color='gray', label='True Z Population', linewidth=1)
+        ax.fill_between(x_grid, kde_true(x_grid), alpha=0.25, color='gray')
+        
+        # Estimated (MAP) distribution KDE
+        kde_map = gaussian_kde(map_z[:, j], bw_method=0.15)
+        ax.plot(x_grid, kde_map(x_grid), color=colors[j], label='Estimated MAP Population', linewidth=1)
+        ax.fill_between(x_grid, kde_map(x_grid), alpha=0.25, color=colors[j])
                 
         ax.set_title(f"Population Distribution:\n{latent_names[j]}", fontsize=14, fontweight='bold')
         ax.set_ylabel("Density", fontsize=12)
