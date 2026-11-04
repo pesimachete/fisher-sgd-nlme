@@ -153,6 +153,35 @@ def simu_data(theta, n, t=20, prng_key=0):
 
     # z = jax.random.normal(key=key1, shape=(n, 3)) @ jnp.linalg.cholesky(p.cov_latent).T + jnp.array((p.asymptotic, p.inflexion, p.tau))  
 
+    # Split keys for the new data generation
+    k_multi_choice, k_multi_noise, k_moon_angle, k_moon_sign, k_moon_noise = jax.random.split(key1, 5)
+
+    # 1. Multimodal density for Parameter 1 (z[:, 0])
+    mode_shift = 40.0
+    mode_mask = jax.random.bernoulli(k_multi_choice, 0.5, shape=(n,))
+    z0_centers = jnp.where(mode_mask, p.asymptotic + mode_shift, p.asymptotic - mode_shift)
+    z0 = z0_centers + jax.random.normal(k_multi_noise, shape=(n,)) * 10.0
+
+    # 2. Moon-based density for Parameters 2 & 3 (z[:, 1] and z[:, 2])
+    radius = 60.0
+    angle = jax.random.uniform(k_moon_angle, shape=(n,)) * jnp.pi
+    moon_mask = jax.random.bernoulli(k_moon_sign, 0.0 , shape=(n,))
+    
+    # Generate interleaving half-circles
+    x = jnp.cos(angle)
+    y = jnp.sin(angle)
+    
+    z1_centers = jnp.where(moon_mask, x, 1.0 - x) * radius + p.inflexion
+    z2_centers = jnp.where(moon_mask, y, 0.5 - y) * radius + p.tau
+    
+    # Add noise to the moons
+    moon_noise = jax.random.normal(k_moon_noise, shape=(n, 2)) * 8.0
+    z1 = z1_centers + moon_noise[:, 0]
+    z2 = z2_centers + moon_noise[:, 1]
+
+    # Combine into the final z array
+    z = jnp.stack([z0, z1, z2], axis=1)
+
     y = z[:, 0][:, None] * expit(
         (t[None, :] - z[:, 1][:, None]) /z[:, 2][:, None]
     ) + jax.random.normal(key=key2, shape=(n, J)) * jnp.sqrt(p.var_residual)

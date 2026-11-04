@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import model
 import jax.numpy as jnp
+from scipy.special import expit
 import os
 
 # Safely attempt to import Plotly for interactive plots
@@ -86,11 +87,20 @@ def generate_all_plots(ex_res_path="example_res.npy", true_z_path="true_z.npy", 
         # Log scale for Variances
         if i in [3, 5, 8, 9]:
             axes_params[i].set_yscale('log')
-        # Logistic transform for Covariances
-        elif i in [4, 6, 7]:
-            plot_data = 1 / (1 + np.exp(-plot_data))
-            true_val = 1 / (1 + np.exp(-true_val))
-            axes_params[i].set_ylabel("Logistic Scale", fontsize=10)
+            
+        # Calculate True Correlation for Off-Diagonals
+        elif i == 4: # Gamma_12
+            plot_data = plot_data / np.sqrt(evol_p[:, 3] * evol_p[:, 5])
+            true_val = true_val / np.sqrt(p0_vec[3] * p0_vec[5])
+            axes_params[i].set_ylabel("Correlation", fontsize=10)
+        elif i == 6: # Gamma_13
+            plot_data = plot_data / np.sqrt(evol_p[:, 3] * evol_p[:, 8])
+            true_val = true_val / np.sqrt(p0_vec[3] * p0_vec[8])
+            axes_params[i].set_ylabel("Correlation", fontsize=10)
+        elif i == 7: # Gamma_23
+            plot_data = plot_data / np.sqrt(evol_p[:, 5] * evol_p[:, 8])
+            true_val = true_val / np.sqrt(p0_vec[5] * p0_vec[8])
+            axes_params[i].set_ylabel("Correlation", fontsize=10)
 
         axes_params[i].axhline(true_val, color='y', linewidth=2, label='True Value' if i==0 else "")
         axes_params[i].plot(plot_data, color='tab:blue', linewidth=1.5, alpha=0.9)
@@ -105,7 +115,6 @@ def generate_all_plots(ex_res_path="example_res.npy", true_z_path="true_z.npy", 
     fig_params.tight_layout(rect=[0, 0, 1, 0.95])
     fig_params.savefig('plots/evol_parameters_detailed.pdf', dpi=300)
     plt.close(fig_params)
-
     # ==========================================
     # 3. FIGURE 2: Gradient Evolution
     # ==========================================
@@ -156,12 +165,18 @@ def generate_all_plots(ex_res_path="example_res.npy", true_z_path="true_z.npy", 
         plot_data = evol_p[:, i].copy()
         true_val = p0_vec[i]
         
-        is_logistic = i in [4, 6, 7]
         is_log_scale = i in [3, 5, 8, 9]
 
-        if is_logistic:
-            plot_data = 1 / (1 + np.exp(-plot_data))
-            true_val = 1 / (1 + np.exp(-true_val))
+        # Calculate True Correlation for Off-Diagonals
+        if i == 4: # Gamma_12
+            plot_data = plot_data / np.sqrt(evol_p[:, 3] * evol_p[:, 5])
+            true_val = true_val / np.sqrt(p0_vec[3] * p0_vec[5])
+        elif i == 6: # Gamma_13
+            plot_data = plot_data / np.sqrt(evol_p[:, 3] * evol_p[:, 8])
+            true_val = true_val / np.sqrt(p0_vec[3] * p0_vec[8])
+        elif i == 7: # Gamma_23
+            plot_data = plot_data / np.sqrt(evol_p[:, 5] * evol_p[:, 8])
+            true_val = true_val / np.sqrt(p0_vec[5] * p0_vec[8])
             
         valid_samples = plot_data[burn_in_idx:]
         

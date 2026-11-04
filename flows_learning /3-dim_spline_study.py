@@ -38,7 +38,7 @@ def sample_3d_data(key, num_samples):
 # Generate the fixed training set
 key = jr.PRNGKey(42)
 key, subkey = jr.split(key)
-num_samples = 20000
+num_samples = 10000
 x_train = sample_3d_data(subkey, num_samples)
 
 print(f"Generated {num_samples} 3D samples.")
@@ -58,8 +58,8 @@ bijection = Coupling(
     transformer=RationalQuadraticSpline(knots=K, interval=bound),
     untransformed_dim=2,  # Dims 0 and 1 are passed through unchanged
     dim=3,                # Total dimensions
-    nn_width=64,          # Width of the internal neural network
-    nn_depth=3            # Depth of the internal neural network
+    nn_width=32,          # Width of the internal neural network
+    nn_depth=2            # Depth of the internal neural network
 )
 
 flow = Transformed(base_dist, bijection)
