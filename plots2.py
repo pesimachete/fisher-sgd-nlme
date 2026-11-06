@@ -27,6 +27,7 @@ def generate_all_plots(ex_res_path="example_res.npy", true_z_path="true_z.npy", 
     # Ensure plots directory exists
     os.makedirs('plots', exist_ok=True)
 
+
     # ==========================================
     # 1. SETUP & DATA LOADING
     # ==========================================
@@ -38,8 +39,32 @@ def generate_all_plots(ex_res_path="example_res.npy", true_z_path="true_z.npy", 
     p0 = model.parametrization.reals1d_to_params(theta0)
     p0_vec = vect_params(p0)
 
+    print("Loading data...")
+    with open(ex_res_path, 'rb') as f:
+        ex_res = pickle.load(f)
+
+    try:
+        true_z = np.load(true_z_path)
+        
+        # Calculate empirical mean and covariance from the generated true Z
+        emp_mean = np.mean(true_z, axis=0)
+        emp_cov = np.cov(true_z, rowvar=False)
+        il1 = np.tril_indices(3)
+        
+        # Overwrite p0_vec: replace the 3 means and 6 covariance terms 
+        # with empirical Z values, keeping the theoretical residual variance at the end.
+        p0_vec = np.concatenate((
+            emp_mean, 
+            emp_cov[il1], 
+            np.array([p0_vec[-1]])
+        ))
+        print("Replaced theoretical Z parameters with empirical true_z moments.")
+    except FileNotFoundError:
+        print(f"Warning: {true_z_path} not found. True z values will not be plotted.")
+        true_z = None
+
     subtitles_params = [
-        r'$\beta_1$', r'$\beta_2$', r'$\alpha$', 
+        r'Assimptotic', r'Inflexion', r'tau', 
         r'$\Gamma_{11}$', r'$\Gamma_{12}$', r'$\Gamma_{22}$', 
         r'$\Gamma_{13}$', r'$\Gamma_{23}$', r'$\Gamma_{33}$', 
         r'$\sigma^2$'

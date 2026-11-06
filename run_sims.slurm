@@ -31,4 +31,7 @@ echo "=============================================="
 
 python -c "import jax; print('JAX:', jax.__version__); print('Devices:', jax.devices())"
 
-python run_simus.py
+python  run_simus.py 
+
+python  unified_plots.py
+

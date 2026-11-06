@@ -152,7 +152,7 @@ def simu_data(theta, n, t=20, prng_key=0):
     z = jax.random.normal(key_norm, shape=(n, 3)) @ L.T + assigned_means
 
     # z = jax.random.normal(key=key1, shape=(n, 3)) @ jnp.linalg.cholesky(p.cov_latent).T + jnp.array((p.asymptotic, p.inflexion, p.tau))  
-
+    """
     # Split keys for the new data generation
     k_multi_choice, k_multi_noise, k_moon_angle, k_moon_sign, k_moon_noise = jax.random.split(key1, 5)
 
@@ -181,6 +181,25 @@ def simu_data(theta, n, t=20, prng_key=0):
 
     # Combine into the final z array
     z = jnp.stack([z0, z1, z2], axis=1)
+
+    """
+    # Split keys for direction and volume-based radius sampling
+    key_dir, key_rad = jax.random.split(key1)
+    
+    # 1. Sample uniform directions in 3D
+    z_raw = jax.random.normal(key_dir, shape=(n, 3))
+    z_unit = z_raw / jnp.linalg.norm(z_raw, axis=1, keepdims=True)
+    
+
+    r = 30.0  # Adjust inner radius as needed
+    R = 80.0  # Adjust outer radius as needed
+    u = jax.random.uniform(key_rad, shape=(n, 1))
+    radii = (u * (R**3 - r**3) + r**3) ** (1/3.0)
+    
+    # 3. Scale directions by sampled radii and shift to true parameter means
+    base_mean = jnp.array([p.asymptotic, p.inflexion, p.tau])
+    z = (z_unit * radii) + base_mean
+
 
     y = z[:, 0][:, None] * expit(
         (t[None, :] - z[:, 1][:, None]) /z[:, 2][:, None]

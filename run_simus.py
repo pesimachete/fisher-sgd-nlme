@@ -18,7 +18,8 @@ def sample_and_estim(theta0, n, prng_key):
     jnp.save("true_z.npy", z)
     y_pd = pd.DataFrame(y,columns=["x_" + str(i) for i in range(1,21)])
     y_pd.to_csv('data/y'+str(key_simu)+'.txt')
-    res = algos.estim(y, t, stop_crit=1e-10, N_smooth=100000, prng_key=key_estim, smart_start=8000)
+    key_estim, key_estim2 = jax.random.split(key_estim)
+    res = algos.estim(y, t, stop_crit=1e-6, N_smooth=100000, prng_key=key_estim, smart_start=10000)
     return res
 
 
@@ -27,15 +28,15 @@ theta0 = model.parametrization.params_to_reals1d(
     inflexion=500,
     tau=150,
     cov_latent=jnp.diag(jnp.array([40, 100, 100])),
-    var_residual=1,
+    var_residual=10,
 )
 
 covariates = namedtuple("covariates","t")
 # cov = covariates(jnp.linspace(100,1500,20))
 
 Nsimus = 1
-n = 20000
-keyy = 0
+n = 10000
+keyy = 131
 many_res = list(
     tqdm(
         (

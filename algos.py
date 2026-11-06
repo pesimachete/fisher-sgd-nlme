@@ -117,10 +117,9 @@ def one_iter(
     # grad_mean = factor * (grad - grad_mean)
     current_grad = -model.grad_log_likelihood(theta, z, y, t)
     
-    # Smooth the gradient using the existing factor logic
+    
     grad = grad_mean + factor * (current_grad - grad_mean)
     
-    # Adam Preconditioner Update
     beta1, beta2, eps = 0.9, 0.999, 1e-8
     m = beta1 * m + (1 - beta1) * grad
     v = beta2 * v + (1 - beta2) * (grad ** 2)
@@ -128,7 +127,7 @@ def one_iter(
     m_hat = m / (1 - beta1 ** (it + 1))
     v_hat = v / (1 - beta2 ** (it + 1))
     
-    # Calculate step using Adam's preconditioned gradient
+
     theta_step = m_hat / (jnp.sqrt(v_hat) + eps)
     theta -= factor * theta_step
 
@@ -192,7 +191,7 @@ def gsto(
 
     jac = jnp.zeros((n, model.parametrization.size))
     end_heating = None
-    o3_filter = O3filter(model.parametrization.size, 100)
+    o3_filter = O3filter(model.parametrization.size, 300)
     o3_step_mean = jnp.zeros(model.parametrization.size)
 
     step_mean = jnp.zeros(model.parametrization.size)
@@ -264,7 +263,7 @@ def estim(y, t, stop_crit=1e-6, N_smooth=10000, prng_key=0, smart_start=1000, th
             itertools.dropwhile(
                 lambda x: (
                     # (x.end_heating is None) or 
-                    (x.step_mean @ x.grad_mean * n > stop_crit)
+                    (x.step_mean @ x.grad_mean * n > stop_crit) and False 
                 ),
                 gsto(y, t, prng_key=prng_key, smart_start=smart_start, theta0=theta),
             ),

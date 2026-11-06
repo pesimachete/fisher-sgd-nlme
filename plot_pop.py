@@ -37,6 +37,10 @@ def plot_z_population_summary(ex_res_path="example_res.npy", true_z_path="true_z
     valid_z_samples = evol_z[burn_in_idx:, :, :]
     map_z = np.mean(valid_z_samples, axis=0)  # Shape: (n_individuals, 3)
 
+	
+    print(f"Shape of true_z: {true_z.shape}")
+    print(f"Shape of map_z: {map_z.shape}")
+    
     latent_names = ['Asymptotic (z_0)', 'Inflexion (z_1)', 'Tau (z_2)']
     colors = ['tab:blue', 'tab:orange', 'tab:green']
 
