@@ -19,3 +19,6 @@ slurm/
 data/
 plots/
 plots_*/
+bad_files/
+plots_files/
+flows_learning/
