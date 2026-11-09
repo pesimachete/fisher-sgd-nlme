@@ -1,53 +1,44 @@
-# Fisher-SGD in nonlinear mixed-effect models
+# pesimachete/fisher-sgd-nlme
 
-This is the code associated to the 2023 ICML paper "Efficient preconditioned stochastic gradient descent for estimation in  latent variable models" by C. Baey, M. Delattre, E. Kuhn, J.-B. Leger and S. Lemler.
+Welcome to the **pesimachete/fisher-sgd-nlme** repository. This project focuses on parameter estimation for Nonlinear Mixed Effects (NLME) models using Fisher scoring, stochastic gradient descent (SGD), and normalizing flows.
 
-It performs parameter estimation in a logistic mixed-effect model with two random effects and one fixed effect.
+## 1. Choosing a Model (`model.py`)
 
-## Dependencies
+Inside the `model.py` file, there are 3 distinct models provided for generating the latent individual parameters:
 
-All modules are available on PyPI:
- - `jax`
- - `numpy`
- - `scipy`
- - `parametrization_cookbook`
- - `matplotlib`
- - `pickle`
- - `functools`
- - `maths`
- - `itertools`
- 
- And on the CRAN:
- - `saemix`
- - `dplyr`
- - `tidyr`
- 
- ## How to reproduce the results -- Python and Fisher-SGD
- 
-  
- ### Run algo
- ```
- python3 run_simus.py
- ```
- 
- ### Figures 
- ```
- python3 plots.py
- ```
- 
- ### Table 1
- ```
- python3 post_analysis.py
- ```
+1. Coordinate-wise three-component Gaussian mixtures
 
- ## How to reproduce the results -- R and SAEM
-You first need to run the simulations in Python. It will create a folder with the simulate data, which can then be called by the R script.
+2. Single-moon construction
 
- ```
- R saem.R
- ```
+3. Empty-ball construction (a uniform spherical shell)
 
- ## On real data
- ```
- python3 run_realdata.py
- ```
+Before running the code, you must choose which one to use. To do this, open `model.py` and **uncomment** the specific model you want to run, while ensuring the other two are commented out.
+
+## 2. Training Pipeline
+
+### Step 1: Fisher SGD Optimization
+
+First, you run the main optimization using the Fisher SGD algorithms to estimate the foundational population and individual parameters.
+
+### Step 2: Flow Map Learning
+
+After the Fisher SGD step, if you want, you can make the normalizing flow learn by the map. This map learning phase is executed using:
+
+* **`flow_training.py`**: Trains the normalizing flow to learn the map of the complex latent geometries.
+
+## 3. Flow Plots and Visualization
+
+Once the learning phases are complete, you can run the flow plots to visualize the results. The evaluation and plotting phase is handled using **`flow_evaluation.py`** alongside the unified plotting script. The functions in these files serve to:
+
+* **Evaluate the Flow Map:** (`flow_evaluation.py`) Evaluates the performance and accuracy of the learned flow map.
+* **Visualize Latent Densities:** Plot the distribution of individual parameters to see how accurately the flow captures complex geometries (like the Gaussian mixture, moon, or spherical shell).
+* **Trajectory Fitting:** Compare the predicted logistic growth curves against the actual observed data points for the individuals.
+* **Diagnostics:** Show the loss curves, convergence metrics, and parameter update trajectories over the training iterations.
+
+## References
+
+For detailed mathematical formulations, likelihood definitions, and sampling constructions, please refer to the provided documentation:
+
+* *Generation of Individual Parameters for the Logistic Growth Model*
+
+* *Mathematical Formalization of the Logistic Growth Nonlinear Mixed Effects Model*
